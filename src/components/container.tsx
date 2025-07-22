@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { Animated } from "react-native";
 import { useLoadingContext } from "./context";
 import { Dot } from "./dot";
@@ -27,7 +27,7 @@ const Container = (): JSX.Element => {
     Array(dots),
     () => new Animated.Value(animatedValues(animation))
   );
-  const [visible, setVisible] = useState(false);
+  const [isMounted, setIsMounted] = useState(true);
 
   const run = (nodes: Animated.Value[]) => {
     Animated.parallel(
@@ -40,11 +40,18 @@ const Container = (): JSX.Element => {
         )
       )
     ).start(() => {
-      setVisible(!visible);
+      if (isMounted) {
+        run(nodes);
+      }
     });
   };
 
-  run(list);
+  useEffect(() => {
+    run(list);
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
 
   return (
     <Animated.View
